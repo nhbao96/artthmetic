@@ -1,6 +1,10 @@
 import 'package:arithmetic_app/common/bases/base_widget.dart';
+import 'package:arithmetic_app/common/utils/extension.dart';
 import 'package:arithmetic_app/data/datasources/remote/api_request.dart';
+import 'package:arithmetic_app/data/repositories/date_repository.dart';
 import 'package:arithmetic_app/data/repositories/home_repository.dart';
+import 'package:arithmetic_app/features/date_arthmetic/date_bloc.dart';
+import 'package:arithmetic_app/features/date_arthmetic/date_event.dart';
 import 'package:arithmetic_app/features/home/home_bloc.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -22,17 +26,17 @@ class _DateArthmeticPageState extends State<DateArthmeticPage> {
         child: _DateArthmeticContainer(),
         providers: [
           Provider<ApiRequest>(create: (context)=>ApiRequest(),),
-          ProxyProvider<ApiRequest,HomeRepository>(
-              create: (context)=>HomeRepository(),
-              update: (context,apiRequest,homeRepository){
-                homeRepository?.updateApiRequest(apiRequest);
-                return homeRepository!;
+          ProxyProvider<ApiRequest,DateRepository>(
+              create: (context)=>DateRepository(),
+              update: (context,apiRequest,dateRepository){
+                dateRepository?.updateApiRequest(apiRequest);
+                return dateRepository!;
               }),
-          ProxyProvider<HomeRepository,HomeBloc>(
-              create: (context)=>HomeBloc(),
-              update: (context,homeRepository,homeBloc){
-                homeBloc?.updateHomeRepository(homeRepository);
-                return homeBloc!;
+          ProxyProvider<DateRepository,DateBloc>(
+              create: (context)=>DateBloc(),
+              update: (context,dateRepository,dateBloc){
+                dateBloc?.updateDateRepository(dateRepository);
+                return dateBloc!;
               })
         ]);
   }
@@ -45,7 +49,7 @@ class _DateArthmeticContainer extends StatefulWidget {
 }
 
 class _DateArthmeticContainerState extends State<_DateArthmeticContainer> {
-  late HomeBloc _bloc;
+  late DateBloc _bloc;
 
   final days = List.generate(31, (i) => i + 1);
   final months = [
@@ -68,25 +72,7 @@ class _DateArthmeticContainerState extends State<_DateArthmeticContainer> {
   late String _selectedMonth;
   late int _selectedYear;
 
-  bool isDateValid(int selectedDay, String selectedMonth, int selectedYear) {
-    if (selectedMonth == 'February') {
-      // Check if the selected year is a leap year
-      if (selectedYear % 4 == 0) {
-        // Leap year
-        return selectedDay <= 29;
-      } else {
-        // Non-leap year
-        return selectedDay <= 28;
-      }
-    } else if (selectedMonth == 'April' ||
-        selectedMonth == 'June' ||
-        selectedMonth == 'September' ||
-        selectedMonth == 'November') {
-      return selectedDay <= 30;
-    } else {
-      return selectedDay <= 31;
-    }
-  }
+
   @override
   void initState() {
     // TODO: implement initState
@@ -98,52 +84,98 @@ class _DateArthmeticContainerState extends State<_DateArthmeticContainer> {
   }
   Widget build(BuildContext context) {
     return SafeArea(
-      child: Column(
-        children: [
-          Text("Vui long chon ngay sinh cua ban : "),
-          Container(
-            width: MediaQuery.of(context).size.width*0.8,
-            height: 70,
-            child: Row(
-              children: [
-                Expanded(
-                  child: CupertinoPicker(
-                    itemExtent: 32,
-                    onSelectedItemChanged: (index) {
-                      setState(() {
-                        _selectedDay = days[index];
-                      });
-                    },
-                    children: days.map((day) => Text(day.toString(),style: TextStyle(fontSize: 16),)).toList(),
-                  ),
-                ),
-                Expanded(
-                  child: CupertinoPicker(
+      child: Container(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Flexible(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Container(margin: EdgeInsets.symmetric(horizontal: 5,vertical:5), child: Text("Vui lòng lựa chọn ngày sinh của bạn : ",style: TextStyle(fontSize: 18),)),
+                  Container(
+                    width: MediaQuery.of(context).size.width*0.95,
+                    height: 70,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        Flexible(
+                          child: Container(
+                            width: 70,
 
-                    itemExtent: 32,
-                    onSelectedItemChanged: (index) {
-                      setState(() {
-                        _selectedMonth = months[index];
-                      });
-                    },
-                    children: months.map((month) => Text(month,style: TextStyle(fontSize: 16))).toList(),
+                            alignment: Alignment.center,
+                            child: CupertinoPicker(
+                              itemExtent: 20,
+                              onSelectedItemChanged: (index) {
+                                setState(() {
+                                  _selectedDay = days[index];
+                                });
+                              },
+                              children: days.map((day) => Text(day.toString(),textAlign: TextAlign.center, style: TextStyle(fontSize: 16),)).toList(),
+
+                            ),
+                          ),
+                        ),
+                        Flexible(
+                          child: Container(
+                            width: 100,
+                            child: CupertinoPicker(
+                              itemExtent: 25,
+                              onSelectedItemChanged: (index) {
+                                setState(() {
+                                  _selectedMonth = months[index];
+                                });
+                              },
+                              children: months.map((month) => Text(month,textAlign: TextAlign.center,style: TextStyle(fontSize: 16))).toList(),
+                            ),
+                          ),
+                        ),
+                        Flexible(
+                          child: Container(
+                            width: 80,
+                            child: CupertinoPicker(
+                              itemExtent: 25,
+                              onSelectedItemChanged: (index) {
+                                setState(() {
+                                  _selectedYear = years[index];
+                                });
+                              },
+                              children: years.map((year) => Text(year.toString(),textAlign: TextAlign.center,style: TextStyle(fontSize: 16))).toList(),
+                            ),
+                          ),
+                        ),
+                        Container(
+                            margin: EdgeInsets.only(top: 20),
+                            child: ElevatedButton(onPressed: (){
+                              int day = _selectedDay;
+                              int month = convertMonthStringToNum(_selectedMonth);
+                              int year = _selectedYear;
+                              if(isDateValid(day, month, year) == true){
+                                _bloc.eventSink.add(ClickConfirmBtnEvent(day, month, year));
+                              }else{
+                                showMessage(context, "Ngày sinh của bạn chưa hợp lệ!, vui lòng thực hiện lại");
+                              }
+                            }, child: Text("Confirm")))
+                      ],
+                    ),
                   ),
-                ),
-                Expanded(
-                  child: CupertinoPicker(
-                    itemExtent: 32,
-                    onSelectedItemChanged: (index) {
-                      setState(() {
-                        _selectedYear = years[index];
-                      });
+                  Container(
+                      margin : EdgeInsets.only(top: 20),
+                      child: StreamBuilder<int>(
+                    stream: _bloc.streamController.stream,
+                    builder: (context,snapshot){
+                      if(snapshot.hasError || snapshot.data == null){
+                        return Container();
+                      }
+                      return Text("Con số chủ đạo của bạn là : ${snapshot.data}", style: TextStyle(fontSize: 20));
                     },
-                    children: years.map((year) => Text(year.toString(),style: TextStyle(fontSize: 16))).toList(),
-                  ),
-                ),
-              ],
-            ),
-          )
-        ],
+                  ))
+                ],
+              ),
+            )
+          ],
+        ),
       ),
     );;
   }
