@@ -15,13 +15,14 @@ class DateRepository{
   Future<AppResource<Number_DTO>> getDataMainNumberById(int id) async{
     Completer<AppResource<Number_DTO>> completer = Completer();
     try{
-      String jsonString = await rootBundle.loadString("assets/number_mock/2.json");
-      print("jsonString = ${jsonString}");
+      String jsonString = await rootBundle.loadString("assets/number_mock/${id}.json");
       Map<String, dynamic> jsonData = jsonDecode(jsonString);
       print("decode done");
-      AppResource<Number_DTO> resourceDTO = AppResource.fromJson(jsonData, Number_DTO.fromJson);
+      AppResource<Number_DTO> resourceDTO = AppResource.fromJson(jsonData, Number_DTO.parser);
+      completer.complete(resourceDTO);
     }catch(e){
       print("getDataMainNumberById error : ${e.toString()}");
+      completer.completeError(e);
     }
     return completer.future;
   }

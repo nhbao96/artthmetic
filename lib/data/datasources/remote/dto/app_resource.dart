@@ -7,6 +7,8 @@ class AppResource<T> {
   // parser
   AppResource.fromJson(Map<String, dynamic> json, Function parseModel) {
     messsage = json["message"];
-    data = parseModel(json["data"]);
+   // data = parseModel(json["data"]);
+    data = parseModel(json);
+
   }
 }

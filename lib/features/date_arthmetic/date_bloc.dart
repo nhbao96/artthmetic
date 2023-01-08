@@ -3,17 +3,22 @@ import 'dart:async';
 import 'package:arithmetic_app/common/bases/base_bloc.dart';
 import 'package:arithmetic_app/common/bases/base_event.dart';
 import 'package:arithmetic_app/common/utils/extension.dart';
+import 'package:arithmetic_app/data/datasources/remote/dto/app_resource.dart';
+import 'package:arithmetic_app/data/datasources/remote/dto/number_dto.dart';
 import 'package:arithmetic_app/data/repositories/date_repository.dart';
 import 'package:arithmetic_app/features/date_arthmetic/date_event.dart';
 
+import '../../data/model/number_model.dart';
+
 class DateBloc extends BaseBloc{
   late DateRepository _dateRepository;
-  StreamController<int> _streamController = StreamController<int>.broadcast();
+  StreamController<NumberModel> _streamController = StreamController<NumberModel>.broadcast();
+  NumberModel? _model;
   int? _day;
   int? _month;
   int? _year;
-
-  StreamController<int> get streamController => _streamController;
+  
+  StreamController<NumberModel> get streamController => _streamController;
 
   int get day => _day ?? 0;
 
@@ -55,20 +60,28 @@ class DateBloc extends BaseBloc{
   }
 
   void handleClickConfirmBtnEvent(ClickConfirmBtnEvent event) async{
+    loadingSink.add(true);
     try{
         _day = await event.day;
         _month = await event.month;
         _year = await event.year;
 
         int sumOfStep1 = sumOfDigits(_day!) + sumOfDigits(_month!) + sumOfDigits(_year!);
-        int sumOfStep2 = sumOfDigits(sumOfStep1);
-
+        int sumOfStep2 = 224;
+        if(sumOfStep1 != 224){
+          sumOfStep2 = sumOfDigits(sumOfStep1);
+        }
         await _dateRepository.getDataMainNumberById(sumOfStep2);
-        _streamController.sink.add(sumOfStep2);
+        AppResource<Number_DTO> resourceDTO = await _dateRepository.getDataMainNumberById(sumOfStep2);
+        if(resourceDTO.data == null) return;
+        Number_DTO modelDTO = resourceDTO.data!;
+        _model = NumberModel(modelDTO.id, modelDTO.title, modelDTO.subTile, modelDTO.content);
+        print("--->data content = ${_model?.content.toString()}");
+        _streamController.add(_model!);
+
     }catch(e){
       print(e.toString());
     }
+    loadingSink.add(false);
   }
-
-
 }

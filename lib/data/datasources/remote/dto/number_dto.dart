@@ -5,6 +5,8 @@ class Number_DTO{
   String? _content;
 
 
+  Number_DTO(this._id, this._title, this._subTile, this._content);
+
   int get id => _id ?? 0;
 
   set id(int value) {
