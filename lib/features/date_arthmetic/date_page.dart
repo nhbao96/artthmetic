@@ -198,6 +198,7 @@ class _DateArthmeticContainerState extends State<_DateArthmeticContainer> {
               Expanded(
                 flex: 6,
                 child: SingleChildScrollView(
+                  controller: _scrollController,
                   child: Column(
                     children: [
                       StreamBuilder<NumberModel>(

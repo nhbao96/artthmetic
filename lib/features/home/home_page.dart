@@ -79,7 +79,7 @@ class _HomeContainerState extends State<_HomeContainer> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                Expanded(child: Center(child: Text("Vui long chon loai than so hoc",
+                Expanded(child: Center(child: Text("Title",
                 textAlign: TextAlign.center,style: TextStyle(fontSize: 20),maxLines: 2,),)),
                 Expanded(
                   child: Column(
@@ -88,10 +88,11 @@ class _HomeContainerState extends State<_HomeContainer> {
                       ElevatedButton(onPressed: (){
                         _bloc.eventSink.add(ChoosingDateTypeEvent());
                         Navigator.pushNamed(context, "date-page");
-                      }, child: Text("Ngay sinh")),
+                      }, child: Text("Date")),
                       ElevatedButton(onPressed: (){
                         _bloc.eventSink.add(ChoosingNameTypeEvent());
-                      }, child: Text("Ho va ten")),
+                        Navigator.pushNamed(context, "name-page");
+                      }, child: Text("Name")),
                     ],
                   ),
                 ),

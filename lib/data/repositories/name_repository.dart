@@ -1,0 +1,31 @@
+import 'dart:async';
+import 'dart:convert';
+
+import 'package:arithmetic_app/data/datasources/remote/api_request.dart';
+import 'package:flutter/services.dart';
+
+import '../datasources/remote/dto/app_resource.dart';
+import '../datasources/remote/dto/number_dto.dart';
+
+class NameRepository{
+  late ApiRequest _apiRequest;
+
+  void updateApiRequest(ApiRequest apiRequest){
+    _apiRequest = apiRequest;
+  }
+
+  Future<AppResource<Number_DTO>> getDataMainNumberById(int id) async{
+    Completer<AppResource<Number_DTO>> completer = Completer();
+    try{
+      String jsonString = await rootBundle.loadString("assets/number_mock/${id}.json");
+      Map<String, dynamic> jsonData = jsonDecode(jsonString);
+      print("decode done");
+      AppResource<Number_DTO> resourceDTO = AppResource.fromJson(jsonData, Number_DTO.parser);
+      completer.complete(resourceDTO);
+    }catch(e){
+      print("getDataMainNumberById error : ${e.toString()}");
+      completer.completeError(e);
+    }
+    return completer.future;
+  }
+}

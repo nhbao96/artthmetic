@@ -1,4 +1,5 @@
 import 'package:arithmetic_app/features/home/home_page.dart';
+import 'package:arithmetic_app/features/name_arthmetic/name_page.dart';
 import 'package:flutter/material.dart';
 
 import 'features/date_arthmetic/date_page.dart';
@@ -19,7 +20,8 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(),
       routes: {
        "home-page" : (context)=>HomePage(),
-        "date-page": (context)=>DateArthmeticPage()
+        "date-page": (context)=>DateArthmeticPage(),
+        "name-page": (context)=> NamePage()
       },
       initialRoute:  "home-page",
     );
